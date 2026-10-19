@@ -15,3 +15,23 @@ workflows:
             -destination "generic/platform=iOS" \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+  ios-build:
+    name: PennyLock iOS Build (signed)
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.paulikschooner139.pennylock
+    scripts:
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa \
+            --project "PennyLock.xcodeproj" \
+            --scheme "PennyLock"
+    artifacts:
+      - build/ios/ipa/*.ipa
