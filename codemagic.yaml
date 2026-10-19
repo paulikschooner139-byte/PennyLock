@@ -1,19 +1,33 @@
 workflows:
-  ios-build:
-    name: PennyLock iOS Build
-    max_build_duration: 60
-    instance_type: mac_mini_m2
+  compile-check:
+    name: Compile Check (no signing)
+    max_build_duration: 30
     environment:
       xcode: latest
-      vars:
-        BUNDLE_ID: com.example.PennyLock
+    scripts:
+      - name: Compile
+        script: |
+          xcodebuild \
+            -project "PennyLock.xcodeproj" \
+            -scheme "PennyLock" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  ios-build:
+    name: PennyLock iOS Build (signed)
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      groups:
+        - appstore_credentials
     scripts:
       - name: Set up code signing
         script: |
-          # Codemagic 在 App 设置里连接 Apple 账号后,会自动管理证书与描述文件。
-          # 这里用 xcode-project 工具读取签名配置。
           xcode-project use-profiles
-      - name: Build unsigned / signed ipa
+      - name: Build ipa
         script: |
           xcode-project build-ipa \
             --project "PennyLock.xcodeproj" \
@@ -22,6 +36,6 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
-      email:
-        recipients:
-          - user@example.com
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_API_KEY
+        submit_to_testflight: falsex
