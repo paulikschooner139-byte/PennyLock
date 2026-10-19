@@ -22,6 +22,7 @@ final class AppStore: ObservableObject {
 
     init() {
         load()
+        seedDemoDataIfNeeded()
         autoSettleIfNeeded()
     }
 
@@ -158,6 +159,26 @@ final class AppStore: ObservableObject {
         if hasData || goal.hasLimit {
             settle(monthKey: prev)
         }
+    }
+
+    /// 截图/演示模式:当以 UITEST_DEMO=1 启动时预填示例数据,让截图界面有内容。
+    func seedDemoDataIfNeeded() {
+        guard ProcessInfo.processInfo.environment["UITEST_DEMO"] == "1" else { return }
+        guard transactions.isEmpty else { return }
+        let cal = Calendar.current
+        let now = Date()
+        let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
+        let demo: [Transaction] = [
+            Transaction(amount: 28.50, type: .expense, category: "food", note: "Lunch", date: monthStart.addingTimeInterval(86400 * 2)),
+            Transaction(amount: 4200, type: .income, category: "salary", note: "Salary", date: monthStart.addingTimeInterval(86400 * 3)),
+            Transaction(amount: 156.80, type: .expense, category: "shopping", note: "Groceries", date: monthStart.addingTimeInterval(86400 * 5)),
+            Transaction(amount: 42.00, type: .expense, category: "transport", note: "Metro card", date: monthStart.addingTimeInterval(86400 * 7)),
+            Transaction(amount: 99.00, type: .expense, category: "entertainment", note: "Cinema", date: monthStart.addingTimeInterval(86400 * 9)),
+            Transaction(amount: 230.00, type: .expense, category: "housing", note: "Utilities", date: monthStart.addingTimeInterval(86400 * 11)),
+            Transaction(amount: 88.00, type: .expense, category: "medical", note: "Pharmacy", date: monthStart.addingTimeInterval(86400 * 13)),
+        ]
+        transactions = demo
+        goal = BudgetGoal(monthlyLimit: 5000, penalty: "Save 500 to your savings account")
     }
 
     // MARK: - 持久化
