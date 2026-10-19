@@ -1,0 +1,76 @@
+"type.expense" = "Expense";
+"type.income" = "Income";
+
+"cat.food" = "Food";
+"cat.transport" = "Transport";
+"cat.shopping" = "Shopping";
+"cat.housing" = "Housing";
+"cat.entertainment" = "Entertainment";
+"cat.medical" = "Medical";
+"cat.education" = "Education";
+"cat.other" = "Other";
+"cat.salary" = "Salary";
+"cat.bonus" = "Bonus";
+"cat.investment" = "Investment";
+"cat.otherIncome" = "Other";
+
+"tab.overview" = "Overview";
+"tab.transactions" = "Transactions";
+"tab.analysis" = "Analysis";
+"tab.goal" = "Goal";
+
+"overview.balance" = "Monthly Balance";
+"overview.income" = "Income";
+"overview.expense" = "Expense";
+"overview.budget" = "Budget";
+"overview.overspent" = "Overspent by %@";
+"overview.recent" = "Recent";
+"overview.noTransactions" = "No records this month yet";
+
+"add.amount" = "Amount";
+"add.type" = "Type";
+"add.category" = "Category";
+"add.date" = "Date";
+"add.note" = "Note";
+"add.notePlaceholder" = "Optional note";
+"add.title" = "New Transaction";
+"add.edit" = "Edit Transaction";
+"add.invalidAmount" = "Please enter a valid amount";
+
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.delete" = "Delete";
+"common.ok" = "OK";
+
+"tx.empty" = "No records";
+
+"analysis.compare" = "This Month vs Last";
+"analysis.thisMonth" = "This Month";
+"analysis.lastMonth" = "Last Month";
+"analysis.change" = "Change";
+"analysis.byCategory" = "By Category";
+"analysis.daily" = "Daily Spending";
+"analysis.empty" = "Add expenses to see analysis";
+
+"goal.limit" = "Monthly spending limit";
+"goal.limitPlaceholder" = "e.g. 5000";
+"goal.limitHint" = "Set 0 to disable goal tracking";
+"goal.penalty" = "Penalty if exceeded";
+"goal.penaltyHint" = "What you commit to do if you overspend";
+"goal.save" = "Save Goal";
+"goal.saved" = "Goal saved";
+"goal.lastResult" = "Last Month Result";
+"goal.achieved" = "Goal achieved";
+"goal.failed" = "Goal missed";
+"goal.overspent" = "Overspent %@";
+"goal.resultDetail" = "Spent %@ of %@ budget";
+"goal.notSettled" = "Last month is not settled yet";
+"goal.settleNow" = "Settle last month now";
+
+"lock.title" = "Locked";
+"lock.subtitle" = "You exceeded your budget last month. Complete your penalty to keep tracking.";
+"lock.budget" = "Budget";
+"lock.spent" = "Spent";
+"lock.overspent" = "Overspent";
+"lock.penalty" = "Your penalty";
+"lock.complete" = "I've completed it — unlock";
