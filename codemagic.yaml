@@ -1,103 +1,103 @@
- workflows:                                                                                               │
-│               compile-check:                                                                                         │
-│                 name: Compile Check (no signing)                                                                     │
-│                 max_build_duration: 30                                                                               │
-│                 environment:                                                                                         │
-│                   xcode: latest                                                                                      │
-│                 scripts:                                                                                             │
-│                   - name: Compile                                                                                    │
-│                     script: |                                                                                        │
-│                       xcodebuild \                                                                                   │
-│                         -project "PennyLock.xcodeproj" \                                                             │
-│                         -scheme "PennyLock" \                                                                        │
-│                         -configuration Release \                                                                     │
-│                         -sdk iphoneos \                                                                              │
-│                         -destination "generic/platform=iOS" \                                                        │
-│                         CODE_SIGNING_ALLOWED=NO \                                                                    │
-│                         build                                                                                        │
-│                                                                                                                      │
-│               ios-build:                                                                                             │
-│                 name: PennyLock iOS Build (signed)                                                                   │
-│                 max_build_duration: 60                                                                               │
-│                 integrations:                                                                                        │
-│                   app_store_connect: PennyLock                                                                       │
-│                 environment:                                                                                         │
-│                   xcode: latest                                                                                      │
-│                   ios_signing:                                                                                       │
-│                     distribution_type: app_store                                                                     │
-│                     bundle_identifier: com.paulikschooner139.pennylock                                               │
-│                 scripts:                                                                                             │
-│                   - name: Set up code signing                                                                        │
-│                     script: |                                                                                        │
-│                       xcode-project use-profiles                                                                     │
-│                   - name: Build ipa                                                                                  │
-│                     script: |                                                                                        │
-│                       xcode-project build-ipa \                                                                      │
-│                         --project "PennyLock.xcodeproj" \                                                            │
-│                         --scheme "PennyLock"                                                                         │
-│                 artifacts:                                                                                           │
-│                   - build/ios/ipa/*.ipa                                                                              │
-│                 publishing:                                                                                          │
-│                   app_store_connect:                                                                                 │
-│                     auth: integration                                                                                │
-│                     submit_to_testflight: false                                                                      │
-│                                                                                                                      │
-│               screenshots:                                                                                           │
-│                 name: Screenshots (simulator)                                                                        │
-│                 max_build_duration: 30                                                                               │
-│                 environment:                                                                                         │
-│                   xcode: latest                                                                                      │
-│                 scripts:                                                                                             │
-│                   - name: Build for simulator                                                                        │
-│                     script: |                                                                                        │
-│                       xcodebuild \                                                                                   │
-│                         -project "PennyLock.xcodeproj" \                                                             │
-│                         -scheme "PennyLock" \                                                                        │
-│                         -sdk iphonesimulator \                                                                       │
-│                         -configuration Debug \                                                                       │
-│                         -derivedDataPath build \                                                                     │
-│                         CODE_SIGNING_ALLOWED=NO \                                                                    │
-│                         build                                                                                        │
-│                   - name: Capture screenshots                                                                        │
-│                     script: |                                                                                        │
-│                       BUNDLE="com.paulikschooner139.pennylock"                                                       │
-│                                                                                                                      │
-│                       DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "Pro Max" | sed -E                │
-│ 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')                                                                                  │
-│                       if [ -z "$DEVICE_UDID" ]; then                                                                 │
-│                         DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "iPhone" | sed -E               │
-│ 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')                                                                                  │
-│                       fi                                                                                             │
-│                       if [ -z "$DEVICE_UDID" ]; then                                                                 │
-│                         echo "ERROR: no iPhone simulator available"                                                  │
-│                         xcrun simctl list devices available                                                          │
-│                         exit 1                                                                                       │
-│                       fi                                                                                             │
-│                       echo "Using device UDID: $DEVICE_UDID"                                                         │
-│                                                                                                                      │
-│                       xcrun simctl shutdown all 2>/dev/null || true                                                  │
-│                       xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true                                           │
-│                       xcrun simctl bootstatus "$DEVICE_UDID" -b                                                      │
-│                                                                                                                      │
-│                       APP_PATH="build/Build/Products/Debug-iphonesimulator/PennyLock.app"                            │
-│                       xcrun simctl install "$DEVICE_UDID" "$APP_PATH"                                                │
-│                                                                                                                      │
-│                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=0 xcrun simctl launch "$DEVICE_UDID"        │
-│ "$BUNDLE"                                                                                                            │
-│                       sleep 5                                                                                        │
-│                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_01_overview.png                           │
-│                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            │
-│                                                                                                                      │
-│                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=2 xcrun simctl launch "$DEVICE_UDID"        │
-│ "$BUNDLE"                                                                                                            │
-│                       sleep 5                                                                                        │
-│                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_02_analysis.png                           │
-│                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            │
-│                                                                                                                      │
-│                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=3 xcrun simctl launch "$DEVICE_UDID"        │
-│ "$BUNDLE"                                                                                                            │
-│                       sleep 5                                                                                        │
-│                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_03_goal.png                               │
-│                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            │
-│                 artifacts:                                                                                           │
-│                   - screenshot_*.png                               
+             workflows:                                                                                               
+               compile-check:                                                                                         
+                 name: Compile Check (no signing)                                                                     
+                 max_build_duration: 30                                                                               
+                 environment:                                                                                         
+                   xcode: latest                                                                                      
+                 scripts:                                                                                             
+                   - name: Compile                                                                                    
+                     script: |                                                                                        
+                       xcodebuild \                                                                                   
+                         -project "PennyLock.xcodeproj" \                                                             
+                         -scheme "PennyLock" \                                                                        
+                         -configuration Release \                                                                     
+                         -sdk iphoneos \                                                                              
+                         -destination "generic/platform=iOS" \                                                        
+                         CODE_SIGNING_ALLOWED=NO \                                                                    
+                         build                                                                                        
+                                                                                                                      
+               ios-build:                                                                                             
+                 name: PennyLock iOS Build (signed)                                                                   
+                 max_build_duration: 60                                                                               
+                 integrations:                                                                                        
+                   app_store_connect: PennyLock                                                                       
+                 environment:                                                                                         
+                   xcode: latest                                                                                      
+                   ios_signing:                                                                                       
+                     distribution_type: app_store                                                                     
+                     bundle_identifier: com.paulikschooner139.pennylock                                               
+                 scripts:                                                                                             
+                   - name: Set up code signing                                                                        
+                     script: |                                                                                        
+                       xcode-project use-profiles                                                                     
+                   - name: Build ipa                                                                                  
+                     script: |                                                                                        
+                       xcode-project build-ipa \                                                                      
+                         --project "PennyLock.xcodeproj" \                                                            
+                         --scheme "PennyLock"                                                                         
+                 artifacts:                                                                                           
+                   - build/ios/ipa/*.ipa                                                                              
+                 publishing:                                                                                          
+                   app_store_connect:                                                                                 
+                     auth: integration                                                                                
+                     submit_to_testflight: false                                                                      
+                                                                                                                      
+               screenshots:                                                                                           
+                 name: Screenshots (simulator)                                                                        
+                 max_build_duration: 30                                                                               
+                 environment:                                                                                         
+                   xcode: latest                                                                                      
+                 scripts:                                                                                             
+                   - name: Build for simulator                                                                        
+                     script: |                                                                                        
+                       xcodebuild \                                                                                   
+                         -project "PennyLock.xcodeproj" \                                                             
+                         -scheme "PennyLock" \                                                                        
+                         -sdk iphonesimulator \                                                                       
+                         -configuration Debug \                                                                       
+                         -derivedDataPath build \                                                                     
+                         CODE_SIGNING_ALLOWED=NO \                                                                    
+                         build                                                                                        
+                   - name: Capture screenshots                                                                        
+                     script: |                                                                                        
+                       BUNDLE="com.paulikschooner139.pennylock"                                                       
+                                                                                                                      
+                       DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "Pro Max" | sed -E                
+ 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')                                                                                  
+                       if [ -z "$DEVICE_UDID" ]; then                                                                 
+                         DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "iPhone" | sed -E               
+ 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')                                                                                  
+                       fi                                                                                             
+                       if [ -z "$DEVICE_UDID" ]; then                                                                 
+                         echo "ERROR: no iPhone simulator available"                                                  
+                         xcrun simctl list devices available                                                          
+                         exit 1                                                                                       
+                       fi                                                                                             
+                       echo "Using device UDID: $DEVICE_UDID"                                                         
+                                                                                                                      
+                       xcrun simctl shutdown all 2>/dev/null || true                                                  
+                       xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true                                           
+                       xcrun simctl bootstatus "$DEVICE_UDID" -b                                                      
+                                                                                                                      
+                       APP_PATH="build/Build/Products/Debug-iphonesimulator/PennyLock.app"                            
+                       xcrun simctl install "$DEVICE_UDID" "$APP_PATH"                                                
+                                                                                                                      
+                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=0 xcrun simctl launch "$DEVICE_UDID"        
+ "$BUNDLE"                                                                                                            
+                       sleep 5                                                                                        
+                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_01_overview.png                           
+                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            
+                                                                                                                      
+                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=2 xcrun simctl launch "$DEVICE_UDID"        
+ "$BUNDLE"                                                                                                            
+                       sleep 5                                                                                        
+                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_02_analysis.png                           
+                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            
+                                                                                                                      
+                       SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_TAB=3 xcrun simctl launch "$DEVICE_UDID"        
+ "$BUNDLE"                                                                                                            
+                       sleep 5                                                                                        
+                       xcrun simctl io "$DEVICE_UDID" screenshot screenshot_03_goal.png                               
+                       xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true                            
+                 artifacts:                                                                                           
+                   - screenshot_*.png 
