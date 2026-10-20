@@ -145,3 +145,26 @@ workflows:
           ls -la demo.mp4
     artifacts:
       - demo.mp4
+
+  # 第五步:Ad Hoc 真机构建(装到你 iPhone 上,用于真机录屏)
+  ad-hoc:
+    name: PennyLock Ad Hoc (install on iPhone)
+    max_build_duration: 60
+    integrations:
+      app_store_connect: PennyLock
+    environment:
+      xcode: latest
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.paulikschooner139.pennylock
+    scripts:
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa \
+            --project "PennyLock.xcodeproj" \
+            --scheme "PennyLock"
+    artifacts:
+      - build/ios/ipa/*.ipa
