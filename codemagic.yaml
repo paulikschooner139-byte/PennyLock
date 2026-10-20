@@ -99,3 +99,49 @@ workflows:
           xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE" 2>/dev/null || true
     artifacts:
       - screenshot_*.png
+
+  # 第四步:录制演示视频(用于审核回复,展示 App 功能)
+  record-video:
+    name: Record demo video
+    max_build_duration: 30
+    environment:
+      xcode: latest
+    scripts:
+      - name: Build for simulator
+        script: |
+          xcodebuild \
+            -project "PennyLock.xcodeproj" \
+            -scheme "PennyLock" \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Record video
+        script: |
+          BUNDLE="com.paulikschooner139.pennylock"
+
+          DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "iPhone 17 Pro (" | grep -oE "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+          if [ -z "$DEVICE_UDID" ]; then
+            DEVICE_UDID=$(xcrun simctl list devices available | grep -m1 "iPhone 17 (" | grep -oE "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+          fi
+          echo "Using device UDID: $DEVICE_UDID"
+
+          xcrun simctl shutdown all 2>/dev/null || true
+          xcrun simctl boot "$DEVICE_UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$DEVICE_UDID" -b
+
+          APP_PATH="build/Build/Products/Debug-iphonesimulator/PennyLock.app"
+          xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
+
+          SIMCTL_CHILD_UITEST_DEMO=1 SIMCTL_CHILD_UITEST_AUTODEMO=1 xcrun simctl launch "$DEVICE_UDID" "$BUNDLE"
+          sleep 3
+
+          xcrun simctl io "$DEVICE_UDID" recordVideo --codec h264 demo.mp4 &
+          REC_PID=$!
+          sleep 32
+          kill -INT "$REC_PID" 2>/dev/null || true
+          sleep 2
+          ls -la demo.mp4
+    artifacts:
+      - demo.mp4
